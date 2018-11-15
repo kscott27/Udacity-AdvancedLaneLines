@@ -18,8 +18,9 @@ image = cv2.imread("../test_images/test3.jpg")
 
 undist, mtx, dist = cal_undistort(image, objpoints, imgpoints)
 
-final_img = pipeline(image)
+result = pipeline(image)
 
-plt.imshow(final_img)
+plt.imshow(result)
+
 plt.savefig("../output_images/final_img.jpg")
 

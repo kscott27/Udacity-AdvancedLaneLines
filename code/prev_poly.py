@@ -71,8 +71,8 @@ def search_around_poly(binary_warped, left_fit, right_fit):
     result = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
     
     # Plot the polynomial lines onto the image
-    plt.plot(left_fitx, ploty, color='yellow')
-    plt.plot(right_fitx, ploty, color='yellow')
+    # plt.plot(left_fitx, ploty, color='yellow')
+    # plt.plot(right_fitx, ploty, color='yellow')
     ## End visualization steps ##
     
     return result, left_fitx, right_fitx, ploty

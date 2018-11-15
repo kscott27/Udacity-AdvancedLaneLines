@@ -103,8 +103,11 @@ def pipeline(img, s_thresh=(170, 255), sx_thresh=(15, 100)):
     result2, left_fitx, right_fitx, ploty = search_around_poly(warped, left_fit, right_fit)
 
     # Create an image to draw the lines on
-    warp_zero = np.zeros_like(warped).astype(np.uint8)
+    warp_zero = np.zeros_like(warped)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+
+    plt.imshow(warp_zero)
+    plt.savefig("../output_images/pre_color_warp.jpg")
 
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
@@ -114,8 +117,15 @@ def pipeline(img, s_thresh=(170, 255), sx_thresh=(15, 100)):
     # Draw the lane onto the warped blank image
     cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
 
+    plt.imshow(color_warp)
+    plt.savefig("../output_images/color_warp.jpg")
+
     # Warp the blank back to original image space using inverse perspective matrix (Minv)
-    newwarp = cv2.warpPerspective(color_warp, Minv, (result2.shape[1], result2.shape[0])) 
+    newwarp = cv2.warpPerspective(color_warp, Minv, (color_warp.shape[1], color_warp.shape[0])) 
+
+    plt.imshow(newwarp)
+    plt.savefig("../output_images/new_warp.jpg")
+
     # Combine the result with the original image
     result = cv2.addWeighted(img, 1, newwarp, 0.3, 0)
 

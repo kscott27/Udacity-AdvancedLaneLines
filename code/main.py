@@ -3,33 +3,23 @@ import matplotlib.image as mpimg
 import numpy as np
 import cv2
 import os
+from Pipeline import pipeline
+from CorrectingForDistortion import parse_calibration_images, cal_undistort, corners_unwarp
 from process_image import process_image
 from HelperFunctions import weighted_img, draw_lines, extrapolateLine
+from sliding_window import fit_polynomial
 # Import everything needed to edit/save/watch video clips
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 
-image = mpimg.imread("CarND-Advanced-Lane-Lines/test_images/straight_lines1.jpg")
-# final_image = process_image(image)
+objpoints, imgpoints = parse_calibration_images('../camera_cal/calibration*.jpg', 9, 6)
 
-# final_image, matrix = corners_unwarp(image)
-plt.imshow(image)
-plt.savefig("CarND-Advanced-Lane-Lines/output_images/original_image.jpg")
+image = cv2.imread("../test_images/test3.jpg")
 
-objpoints = []
-imgpoints = []
+undist, mtx, dist = cal_undistort(image, objpoints, imgpoints)
 
-objp = np.zeros((9*6, 3), np.float32)
-objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
+final_img = pipeline(image)
 
-gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
-if ret == True:
-	imgpoints.append(corners)
-	objpoints.append(objp)
+plt.imshow(final_img)
+plt.savefig("../output_images/final_img.jpg")
 
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-
-warped, M = corners_unwarp(image, 9, 6, mtx)
-plt.imshow(warped)
-plt.savefig("CarND-Advanced-Lane-Lines/output_images/warped_image.jpg")

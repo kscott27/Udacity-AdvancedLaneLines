@@ -13,7 +13,7 @@ def fit_poly(img_shape, leftx, lefty, rightx, righty):
     left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
     right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
     
-    return left_fitx, right_fitx, ploty
+    return left_fitx, right_fitx, ploty, left_fit, right_fit
 
 def search_around_poly(binary_warped, left_fit, right_fit):
     # HYPERPARAMETER
@@ -44,7 +44,7 @@ def search_around_poly(binary_warped, left_fit, right_fit):
     righty = nonzeroy[right_lane_inds]
 
     # Fit new polynomials
-    left_fitx, right_fitx, ploty = fit_poly(binary_warped.shape, leftx, lefty, rightx, righty)
+    left_fitx, right_fitx, ploty, left_fit, right_fit = fit_poly(binary_warped.shape, leftx, lefty, rightx, righty)
     
     ## Visualization ##
     # Create an image to draw on and an image to show the selection window
@@ -75,5 +75,5 @@ def search_around_poly(binary_warped, left_fit, right_fit):
     # plt.plot(right_fitx, ploty, color='yellow')
     ## End visualization steps ##
     
-    return result, left_fitx, right_fitx, ploty
+    return result, left_fitx, right_fitx, ploty, left_fit, right_fit
 

@@ -65,7 +65,7 @@ class Pipeline():
 
         combined_binary = np.uint8(255*combined_binary/np.max(combined_binary))
 
-
+        # Set up for top-view perspective transform
         src = np.float32([[700,450],
                           [1100,700],
                           [200,700],

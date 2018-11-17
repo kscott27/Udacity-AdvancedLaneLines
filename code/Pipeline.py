@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from PIL import Image, ImageDraw
 
 from radius_curve import measure_curvature_real
 from prev_poly import fit_poly, search_around_poly
@@ -25,6 +26,7 @@ class Pipeline():
         l_channel = hls[:,:,1]
         s_channel = hls[:,:,2]
 
+        # Filter image with different color channels and thresholds
         mag_binary = mag_thresh(img, sobel_kernel=9, mag_thresh=(10, 255))
 
         # Sobel x
@@ -63,15 +65,6 @@ class Pipeline():
 
         combined_binary = np.uint8(255*combined_binary/np.max(combined_binary))
 
-        # plt.imshow(combined_binary)
-        # plt.savefig("../output_images/combined_binary.jpg")
-
-        # plt.imshow(combined_binary)
-        # plt.plot(700, 450, '.')
-        # plt.plot(1100, 700, '.')
-        # plt.plot(200, 700, '.')
-        # plt.plot(600, 450, '.')
-        # plt.savefig("../output_images/srcpts.jpg")
 
         src = np.float32([[700,450],
                           [1100,700],
@@ -100,25 +93,29 @@ class Pipeline():
         # Warp the image using OpenCV warpPerspective()
         warped = cv2.warpPerspective(combined_binary, M, img_size)
 
-        # plt.imshow(warped)
-        # plt.savefig("../output_images/warped.jpg")
-
         # Run image through the pipeline
         # Note that in your project, you'll also want to feed in the previous fits
         if self.leftLine.detected == True and self.rightLine.detected == True:
-            result2, left_fitx, right_fitx, ploty, self.leftLine.current_fit, self.rightLine.current_fit = search_around_poly(warped, self.leftLine.current_fit, self.rightLine.current_fit)
+            result2, left_fitx, right_fitx, ploty, self.leftLine.current_fit, self.rightLine.current_fit, self.leftLine.allx, self.rightLine.allx = search_around_poly(warped, self.leftLine.current_fit, self.rightLine.current_fit)
         else:
-            result1, self.leftLine.current_fit, self.rightLine.current_fit = fit_polynomial(warped)
-            result2, left_fitx, right_fitx, ploty, self.leftLine.current_fit, self.rightLine.current_fit = search_around_poly(warped, self.leftLine.current_fit, self.rightLine.current_fit)
+            result1, self.leftLine.current_fit, self.rightLine.current_fit, self.leftLine.allx, self.rightLine.allx = fit_polynomial(warped)
+            result2, left_fitx, right_fitx, ploty, self.leftLine.current_fit, self.rightLine.current_fit, self.leftLine.allx, self.rightLine.allx = search_around_poly(warped, self.leftLine.current_fit, self.rightLine.current_fit)
             self.leftLine.detected = True
             self.rightLine.detected = True
+
+        # Calculate curvature and store data into Line objects
+        self.leftLine.radius_of_curvature, self.rightLine.radius_of_curvature = measure_curvature_real(self.leftLine.current_fit, self.rightLine.current_fit, ploty)
+        radius_of_curvature = (self.leftLine.radius_of_curvature + self.rightLine.radius_of_curvature) / 2
+
+        # Calculate offset but first calculating the x position of each line based on the polynomial value at the bottom of the image
+        imageCenter = warped.shape[1] / 2
+        self.leftLine.line_base_pos = self.leftLine.current_fit[0]*warped.shape[0]**2 + self.leftLine.current_fit[1]*warped.shape[0] + self.leftLine.current_fit[2] - imageCenter
+        self.rightLine.line_base_pos = self.rightLine.current_fit[0]*warped.shape[0]**2 + self.rightLine.current_fit[1]*warped.shape[0] + self.rightLine.current_fit[2] - imageCenter
+        offset = (self.leftLine.line_base_pos + self.rightLine.line_base_pos) * (0.5*3.7/500)
 
         # Create an image to draw the lines on
         warp_zero = np.zeros_like(warped)
         color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
-
-        # plt.imshow(warp_zero)
-        # plt.savefig("../output_images/pre_color_warp.jpg")
 
         # Recast the x and y points into usable format for cv2.fillPoly()
         pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
@@ -139,6 +136,12 @@ class Pipeline():
 
         # Combine the result with the original image
         result = cv2.addWeighted(img, 1, newwarp, 0.3, 0)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(result, "Radius of curvature: " + str(int(radius_of_curvature)) + " m", (50,100), font, 2, (255,255,255),2)
+        if offset > 0:
+            cv2.putText(result, str(round(abs(offset), 2)) + " m left of center", (50,175), font, 2, (255,255,255),2)
+        else:
+            cv2.putText(result, str(round(abs(offset), 2)) + " m right of center", (50,175), font, 2, (255,255,255),2)
 
         return result
 

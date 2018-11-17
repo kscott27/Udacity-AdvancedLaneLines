@@ -40,7 +40,8 @@ def cal_undistort(img, objpoints, imgpoints):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
     undist = cv2.undistort(gray, mtx, dist, None, mtx)
-    return undist, mtx, dist
+    undist_color = cv2.cvtColor(undist, cv2.COLOR_GRAY2BGR)
+    return undist_color, mtx, dist
 
 def corners_unwarp(img, nx, ny, mtx, dist):
     # Use the OpenCV undistort() function to remove distortion

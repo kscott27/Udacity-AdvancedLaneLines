@@ -75,5 +75,5 @@ def search_around_poly(binary_warped, left_fit, right_fit):
     # plt.plot(right_fitx, ploty, color='yellow')
     ## End visualization steps ##
     
-    return result, left_fitx, right_fitx, ploty, left_fit, right_fit
+    return result, left_fitx, right_fitx, ploty, left_fit, right_fit, leftx, rightx
 

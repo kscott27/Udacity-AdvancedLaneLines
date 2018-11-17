@@ -113,4 +113,4 @@ def fit_polynomial(binary_warped):
     # plt.plot(left_fitx, ploty, color='yellow')
     # plt.plot(right_fitx, ploty, color='yellow')
 
-    return out_img, left_fit, right_fit
+    return out_img, left_fit, right_fit, leftx, rightx
